@@ -4,6 +4,7 @@ Escriba el codigo que ejecute la accion solicitada en cada pregunta.
 
 # pylint: disable=import-outside-toplevel
 
+import pandas as pd
 
 def pregunta_01():
     """
@@ -18,3 +19,32 @@ def pregunta_01():
 
 
     """
+    with open('files/input/clusters_report.txt', 'r') as file:
+        lineas = file.readlines()
+
+    data = []
+    cluster = None
+    for linea in lineas[4:]:
+        if linea.strip():
+            partes = linea.split()
+            if partes[0].isdigit():
+                if cluster:
+                    data.append(cluster)
+                cluster = int(partes[0])
+                num_palabras_clave = int(partes[1])
+                porcentaje_palabras_clave = float(partes[2].replace(',', '.').replace('%', ''))
+                palabras_clave_principales = ' '.join(partes[3:])
+                cluster = {
+                    'cluster': cluster,
+                    'cantidad_de_palabras_clave': num_palabras_clave,
+                    'porcentaje_de_palabras_clave': porcentaje_palabras_clave,
+                    'principales_palabras_clave': palabras_clave_principales
+                }
+            else:
+                cluster['principales_palabras_clave'] += ' ' + ' '.join(partes)
+
+    if cluster:
+        data.append(cluster)
+    df = pd.DataFrame(data)
+    df['principales_palabras_clave'] = df['principales_palabras_clave'].str.replace(' ,', ',').str.replace(', ', ', ').str.replace('  ', ' ').str.strip('.').str.lstrip('% ')
+    return df
